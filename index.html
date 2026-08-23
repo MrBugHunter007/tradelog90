@@ -363,12 +363,12 @@
     //  See SETUP_GUIDE.md for step-by-step instructions
     // ══════════════════════════════════════════════
     const firebaseConfig = {
-      apiKey:            "YOUR_API_KEY",
-      authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId:         "YOUR_PROJECT_ID",
-      storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId:             "YOUR_APP_ID"
+      apiKey:            "AIzaSyDxs8vSFWqX56XVkyETfV9cNZM4YLH0IdI",
+      authDomain:        "tradelog90.firebaseapp.com",
+      projectId:         "tradelog90",
+      storageBucket:     "tradelog90.firebasestorage.app",
+      messagingSenderId: "819185731815",
+      appId:             "1:819185731815:web:5c14565ddce458ab9fba42"
     };
 
     const app       = initializeApp(firebaseConfig);
@@ -908,14 +908,15 @@
     }
 
     function friendlyError(code) {
-      const firebaseConfig = {
-	  apiKey: "AIzaSyDxs8vSFWqX56XVkyETfV9cNZM4YLH0IdI",
-	  authDomain: "tradelog90.firebaseapp.com",
-	  projectId: "tradelog90",
-	  storageBucket: "tradelog90.firebasestorage.app",
-	  messagingSenderId: "819185731815",
-	  appId: "1:819185731815:web:5c14565ddce458ab9fba42"
-	};
+      const map = {
+        "auth/wrong-password": "Incorrect password.",
+        "auth/user-not-found": "No account with that email.",
+        "auth/email-already-in-use": "Email already registered.",
+        "auth/invalid-email": "Invalid email format.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/too-many-requests": "Too many attempts. Please wait.",
+        "auth/network-request-failed": "Network error. Check connection.",
+      };
       return map[code] || "An error occurred. Please try again.";
     }
   </script>
