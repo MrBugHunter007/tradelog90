@@ -458,20 +458,33 @@
       if (!learned && !notes) { showToast("Add at least some notes.", "error"); setLoading(btn, false); return; }
 
       try {
-        // Upload screenshots to Firebase Storage
-        const screenshotURLs = [];
-        for (let i = 0; i < pendingScreenshots.length; i++) {
-          const s    = pendingScreenshots[i];
-          const path = `users/${currentUser.uid}/screenshots/${date}_${i}_${Date.now()}.jpg`;
-          const sRef = ref(storage, path);
-          await uploadString(sRef, s.data, "data_url");
-          const url  = await getDownloadURL(sRef);
-          screenshotURLs.push({ url, path, name: s.name });
-        }
+        // ── Save session data first (always succeeds) ──
+        const docId  = editingDocId || date;
+        const docRef = doc(db, "users", currentUser.uid, "sessions", docId);
+        const snapEx = await getDoc(docRef);
+        const existing = snapEx.exists() ? snapEx.data() : {};
 
-        const docId   = editingDocId || date;
-        const docRef  = doc(db, "users", currentUser.uid, "sessions", docId);
-        const existing = (await getDoc(docRef)).data() || {};
+        // Compress screenshots before storing (resize to max 800px wide, quality 0.7)
+        const compressImage = (dataUrl) => new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => {
+            const maxW = 800;
+            const scale = img.width > maxW ? maxW / img.width : 1;
+            const canvas = document.createElement("canvas");
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", 0.7));
+          };
+          img.src = dataUrl;
+        });
+
+        // Store screenshots as base64 in Firestore (avoids Storage CORS entirely)
+        const newScreenshots = [];
+        for (const s of pendingScreenshots) {
+          const compressed = await compressImage(s.data);
+          newScreenshots.push({ data: compressed, name: s.name, savedAt: new Date().toISOString() });
+        }
 
         await setDoc(docRef, {
           date,
@@ -482,7 +495,7 @@
           strategy,
           notes,
           trades, wins, losses,
-          screenshots: [...(existing.screenshots || []), ...screenshotURLs],
+          screenshots: [...(existing.screenshots || []), ...newScreenshots],
           updatedAt: new Date().toISOString()
         }, { merge: true });
 
@@ -494,7 +507,7 @@
         await loadEntries();
         updateDashboard();
       } catch (e) {
-        console.error(e);
+        console.error("Save error:", e);
         showToast("Error saving: " + e.message, "error");
       } finally {
         setLoading(btn, false);
@@ -525,9 +538,7 @@
         const snap   = await getDoc(docRef);
         if (!snap.exists()) return;
         const data   = snap.data();
-        const ss     = data.screenshots[ssIdx];
-        // delete from Storage
-        try { await deleteObject(ref(storage, ss.path)); } catch {}
+        // Screenshots are stored as base64 in Firestore — just remove from array
         data.screenshots.splice(ssIdx, 1);
         await updateDoc(docRef, { screenshots: data.screenshots });
         showToast("Screenshot removed.", "success");
@@ -747,11 +758,14 @@
       const e = allEntries.find(x => x.id === dateId);
       if (!e) return;
       const wr = e.trades > 0 ? Math.round((e.wins / e.trades) * 100) : null;
-      const screenshots = (e.screenshots || []).map((s, i) =>
-        `<div class="modal-ss-wrap">
-          <img src="${s.url}" alt="Chart ${i+1}" class="modal-ss" onclick="window.open('${s.url}','_blank')" />
+      const screenshots = (e.screenshots || []).map((s, i) => {
+        // Support both legacy Storage URL format and new base64 format
+        const imgSrc = s.data || s.url || "";
+        return `<div class="modal-ss-wrap">
+          <img src="${imgSrc}" alt="Chart ${i+1}" class="modal-ss" onclick="window.open('${imgSrc}','_blank')" />
           <button class="ss-delete-btn" onclick="removeExistingScreenshot('${dateId}',${i})">✕</button>
-        </div>`).join("");
+        </div>`;
+      }).join("");
 
       document.getElementById("modal-content").innerHTML = `
         <div class="modal-date">${formatDate(e.date)} ${e.mood || ""}</div>
