@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>90-Day Trading Challenge | MrRobotSec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+  <div id="login-page" class="page active">
+    <div class="login-bg">
+      <div class="grid-overlay"></div>
+      <div class="glow-orb orb1"></div>
+      <div class="glow-orb orb2"></div>
+    </div>
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">📈</div>
+        <h1>TradeLog90</h1>
+        <p class="brand-sub">90-Day Quotex Challenge Tracker</p>
+      </div>
+      <div id="login-error" class="error-banner hidden"></div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pw-toggle" onclick="togglePw()">👁</button>
+        </div>
+      </div>
+      <button class="btn-primary" id="login-btn" onclick="handleLogin()">
+        <span class="btn-text">Sign In</span>
+        <span class="btn-loader hidden">⟳</span>
+      </button>
+      <div class="login-footer">
+        <p>Don't have an account? <a href="#" onclick="switchToRegister()">Create one</a></p>
+      </div>
+
+      <!-- Register form (hidden by default) -->
+      <div id="register-section" class="hidden">
+        <hr class="divider" />
+        <h3 style="text-align:center;margin-bottom:16px;color:var(--accent)">Create Account</h3>
+        <div class="form-group">
+          <label for="reg-name">Display Name</label>
+          <input type="text" id="reg-name" placeholder="MrRobotSec" />
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" placeholder="Min 6 characters" />
+        </div>
+        <button class="btn-secondary" id="reg-btn" onclick="handleRegister()">
+          <span class="btn-text">Create Account</span>
+          <span class="btn-loader hidden">⟳</span>
+        </button>
+        <p style="text-align:center;margin-top:12px"><a href="#" onclick="switchToLogin()">Back to Sign In</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAIN APP ═══════════════ -->
+  <div id="app-page" class="page hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-mini">
+          <span class="brand-icon-sm">📈</span>
+          <span class="brand-name">TradeLog90</span>
+        </div>
+        <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard',this)">
+          <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <a href="#" class="nav-item" data-tab="daily-log" onclick="switchTab('daily-log',this)">
+          <span class="nav-icon">📝</span> Daily Log
+        </a>
+        <a href="#" class="nav-item" data-tab="all-days" onclick="switchTab('all-days',this)">
+          <span class="nav-icon">📅</span> All Days
+        </a>
+        <a href="#" class="nav-item" data-tab="progress" onclick="switchTab('progress',this)">
+          <span class="nav-icon">📊</span> Progress
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info" id="sidebar-user"></div>
+        <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <!-- Top bar -->
+      <header class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-right">
+          <span class="day-badge" id="current-day-badge">Day —</span>
+          <span class="date-display" id="today-display"></span>
+        </div>
+      </header>
+
+      <!-- ── DASHBOARD TAB ── -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="section-header">
+          <h2>Challenge Overview</h2>
+          <p id="challenge-status-text">Track your 90-day Quotex journey</p>
+        </div>
+
+        <!-- Progress bar card -->
+        <div class="card progress-card">
+          <div class="progress-header">
+            <div>
+              <span class="progress-label">Overall Progress</span>
+              <span class="progress-days" id="progress-fraction">0 / 90 days</span>
+            </div>
+            <span class="progress-pct" id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-phases">
+            <span>Beginner</span><span>Developing</span><span>Advanced</span>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">🗓</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-days-logged">0</div>
+              <div class="stat-label">Days Logged</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏱</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-total-hours">0h</div>
+              <div class="stat-label">Total Practice</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧠</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-lessons">0</div>
+              <div class="stat-label">Lessons Noted</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-streak">0</div>
+              <div class="stat-label">Day Streak</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent entries -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Recent Sessions</h3>
+            <button class="btn-sm" onclick="switchTab('daily-log', document.querySelector('[data-tab=daily-log]'))">+ Log Today</button>
+          </div>
+          <div id="recent-entries">
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <p>No sessions yet. Start logging your practice!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DAILY LOG TAB ── -->
+      <div class="tab-content hidden" id="tab-daily-log">
+        <div class="section-header">
+          <h2>Log Today's Session</h2>
+          <p id="log-date-display"></p>
+        </div>
+
+        <div class="card log-form-card">
+          <!-- Date selector -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Session Date</label>
+              <input type="date" id="log-date" />
+            </div>
+            <div class="form-group">
+              <label>Practice Duration</label>
+              <select id="log-duration">
+                <option value="0.5">30 minutes</option>
+                <option value="1" selected>1 hour</option>
+                <option value="1.5">1.5 hours</option>
+                <option value="2">2 hours</option>
+                <option value="2.5">2.5 hours</option>
+                <option value="3">3 hours</option>
+                <option value="3+">3+ hours</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mood / Confidence</label>
+              <div class="mood-selector" id="mood-selector">
+                <button class="mood-btn" data-mood="😤" onclick="selectMood(this)">😤</button>
+                <button class="mood-btn" data-mood="😐" onclick="selectMood(this)">😐</button>
+                <button class="mood-btn active" data-mood="🙂" onclick="selectMood(this)">🙂</button>
+                <button class="mood-btn" data-mood="😊" onclick="selectMood(this)">😊</button>
+                <button class="mood-btn" data-mood="🚀" onclick="selectMood(this)">🚀</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Topics practiced -->
+          <div class="form-group">
+            <label>Topics Practiced (comma-separated)</label>
+            <input type="text" id="log-topics" placeholder="e.g. RSI divergence, support/resistance, trend lines" />
+          </div>
+
+          <!-- What I learned -->
+          <div class="form-group">
+            <label>What I Learned Today</label>
+            <textarea id="log-learned" rows="5" placeholder="Key lessons, insights, mistakes to avoid..."></textarea>
+          </div>
+
+          <!-- Trade results -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Trades Taken</label>
+              <input type="number" id="log-trades" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Wins</label>
+              <input type="number" id="log-wins" placeholder="0" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Losses</label>
+              <input type="number" id="log-losses" placeholder="0" min="0" />
+            </div>
+          </div>
+
+          <!-- Strategy notes -->
+          <div class="form-group">
+            <label>Strategy / Setup Notes</label>
+            <textarea id="log-strategy" rows="4" placeholder="What setups worked? What didn't? Technical analysis notes..."></textarea>
+          </div>
+
+          <!-- Screenshot upload -->
+          <div class="form-group">
+            <label>Chart Screenshots</label>
+            <div class="upload-zone" id="upload-zone">
+              <input type="file" id="screenshot-input" accept="image/*" multiple onchange="handleScreenshots(event)" />
+              <div class="upload-placeholder" onclick="document.getElementById('screenshot-input').click()">
+                <div class="upload-icon">📸</div>
+                <p>Click to upload or drag & drop chart screenshots</p>
+                <span>PNG, JPG, WEBP supported</span>
+              </div>
+            </div>
+            <div id="screenshot-previews" class="screenshot-grid"></div>
+          </div>
+
+          <!-- Additional notes -->
+          <div class="form-group">
+            <label>Additional Notes / Reflections</label>
+            <textarea id="log-notes" rows="5" placeholder="Free-form notes, reflections, goals for tomorrow..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-primary" id="save-log-btn" onclick="saveLog()">
+              <span class="btn-text">💾 Save Session</span>
+              <span class="btn-loader hidden">⟳ Saving...</span>
+            </button>
+            <button class="btn-ghost" onclick="clearForm()">Clear Form</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ALL DAYS TAB ── -->
+      <div class="tab-content hidden" id="tab-all-days">
+        <div class="section-header">
+          <h2>All Sessions</h2>
+          <p>Your complete 90-day journey</p>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="🔍 Search by topic or notes..." oninput="filterEntries()" />
+        </div>
+        <div id="all-entries-list">
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>No sessions logged yet. Start with Day 1!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROGRESS TAB ── -->
+      <div class="tab-content hidden" id="tab-progress">
+        <div class="section-header">
+          <h2>Progress Analysis</h2>
+          <p>Visualize your 90-day growth</p>
+        </div>
+
+        <!-- 90-day grid -->
+        <div class="card">
+          <h3 style="margin-bottom:16px">Activity Heatmap — 90 Days</h3>
+          <div id="day-grid" class="day-grid"></div>
+          <div class="grid-legend">
+            <span class="legend-dot empty"></span> Not logged
+            <span class="legend-dot done"></span> Session logged
+            <span class="legend-dot today"></span> Today
+          </div>
+        </div>
+
+        <!-- Win rate chart -->
+        <div class="card">
+          <h3 style="margin-bottom:16px">Win Rate Over Time</h3>
+          <div id="winrate-chart" class="bar-chart-wrap"></div>
+        </div>
+
+        <!-- Topics word cloud -->
+        <div class="card">
+          <h3 style="margin-bottom:16px">Most Practiced Topics</h3>
+          <div id="topics-cloud" class="topics-cloud"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ENTRY MODAL ═══════════════ -->
+  <div class="modal-overlay hidden" id="entry-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      signOut, onAuthStateChanged, updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, collection,
+      getDocs, query, orderBy, deleteDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadString, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+    // ══════════════════════════════════════════════
+    //  🔥 FIREBASE CONFIG — Replace with your values
+    //  See SETUP_GUIDE.md for step-by-step instructions
+    // ══════════════════════════════════════════════
+    const firebaseConfig = {
+      apiKey:            "YOUR_API_KEY",
+      authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId:         "YOUR_PROJECT_ID",
+      storageBucket:     "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId:             "YOUR_APP_ID"
+    };
+
+    const app       = initializeApp(firebaseConfig);
+    const auth      = getAuth(app);
+    const db        = getFirestore(app);
+    const storage   = getStorage(app);
+
+    // ── State ──
+    let currentUser  = null;
+    let allEntries   = [];
+    let pendingScreenshots = []; // base64 images staged locally
+    let selectedMood = "🙂";
+    let editingDocId = null;
+
+    // ── Auth state listener ──
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        showApp(user);
+      } else {
+        currentUser = null;
+        showLogin();
+      }
+    });
+
+    // ── Expose functions to window ──
+    window.handleLogin = async function () {
+      const btn   = document.getElementById("login-btn");
+      const email = document.getElementById("email").value.trim();
+      const pw    = document.getElementById("password").value;
+      if (!email || !pw) return showError("login-error", "Email and password required.");
+      setLoading(btn, true);
+      try {
+        await signInWithEmailAndPassword(auth, email, pw);
+      } catch (e) {
+        showError("login-error", friendlyError(e.code));
+      } finally {
+        setLoading(btn, false);
+      }
+    };
+
+    window.handleRegister = async function () {
+      const btn  = document.getElementById("reg-btn");
+      const name = document.getElementById("reg-name").value.trim();
+      const email = document.getElementById("reg-email").value.trim();
+      const pw   = document.getElementById("reg-password").value;
+      if (!name || !email || !pw) return showError("login-error", "All fields are required.");
+      if (pw.length < 6) return showError("login-error", "Password must be at least 6 characters.");
+      setLoading(btn, true);
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pw);
+        await updateProfile(cred.user, { displayName: name });
+        // Create user profile in Firestore
+        await setDoc(doc(db, "users", cred.user.uid), {
+          displayName: name,
+          email,
+          challengeStart: new Date().toISOString().split("T")[0],
+          createdAt: new Date().toISOString()
+        });
+      } catch (e) {
+        showError("login-error", friendlyError(e.code));
+      } finally {
+        setLoading(btn, false);
+      }
+    };
+
+    window.handleLogout = async function () {
+      await signOut(auth);
+    };
+
+    window.saveLog = async function () {
+      if (!currentUser) return;
+      const btn = document.getElementById("save-log-btn");
+      setLoading(btn, true);
+
+      const date      = document.getElementById("log-date").value;
+      const duration  = document.getElementById("log-duration").value;
+      const topics    = document.getElementById("log-topics").value.trim();
+      const learned   = document.getElementById("log-learned").value.trim();
+      const strategy  = document.getElementById("log-strategy").value.trim();
+      const notes     = document.getElementById("log-notes").value.trim();
+      const trades    = parseInt(document.getElementById("log-trades").value) || 0;
+      const wins      = parseInt(document.getElementById("log-wins").value) || 0;
+      const losses    = parseInt(document.getElementById("log-losses").value) || 0;
+
+      if (!date) { showToast("Please select a date.", "error"); setLoading(btn, false); return; }
+      if (!learned && !notes) { showToast("Add at least some notes.", "error"); setLoading(btn, false); return; }
+
+      try {
+        // Upload screenshots to Firebase Storage
+        const screenshotURLs = [];
+        for (let i = 0; i < pendingScreenshots.length; i++) {
+          const s    = pendingScreenshots[i];
+          const path = `users/${currentUser.uid}/screenshots/${date}_${i}_${Date.now()}.jpg`;
+          const sRef = ref(storage, path);
+          await uploadString(sRef, s.data, "data_url");
+          const url  = await getDownloadURL(sRef);
+          screenshotURLs.push({ url, path, name: s.name });
+        }
+
+        const docId   = editingDocId || date;
+        const docRef  = doc(db, "users", currentUser.uid, "sessions", docId);
+        const existing = (await getDoc(docRef)).data() || {};
+
+        await setDoc(docRef, {
+          date,
+          duration: parseFloat(duration) || 1,
+          mood: selectedMood,
+          topics: topics.split(",").map(t => t.trim()).filter(Boolean),
+          learned,
+          strategy,
+          notes,
+          trades, wins, losses,
+          screenshots: [...(existing.screenshots || []), ...screenshotURLs],
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        showToast("Session saved! 🎉", "success");
+        clearForm();
+        pendingScreenshots = [];
+        document.getElementById("screenshot-previews").innerHTML = "";
+        editingDocId = null;
+        await loadEntries();
+        updateDashboard();
+      } catch (e) {
+        console.error(e);
+        showToast("Error saving: " + e.message, "error");
+      } finally {
+        setLoading(btn, false);
+      }
+    };
+
+    window.handleScreenshots = function (event) {
+      const files = Array.from(event.target.files);
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          pendingScreenshots.push({ data: e.target.result, name: file.name });
+          renderScreenshotPreviews();
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+
+    window.removeScreenshot = function (idx) {
+      pendingScreenshots.splice(idx, 1);
+      renderScreenshotPreviews();
+    };
+
+    window.removeExistingScreenshot = async function (entryDate, ssIdx) {
+      if (!currentUser) return;
+      try {
+        const docRef = doc(db, "users", currentUser.uid, "sessions", entryDate);
+        const snap   = await getDoc(docRef);
+        if (!snap.exists()) return;
+        const data   = snap.data();
+        const ss     = data.screenshots[ssIdx];
+        // delete from Storage
+        try { await deleteObject(ref(storage, ss.path)); } catch {}
+        data.screenshots.splice(ssIdx, 1);
+        await updateDoc(docRef, { screenshots: data.screenshots });
+        showToast("Screenshot removed.", "success");
+        closeModal();
+        await loadEntries();
+      } catch (e) {
+        showToast("Error: " + e.message, "error");
+      }
+    };
+
+    window.deleteEntry = async function (dateId) {
+      if (!confirm("Delete this session permanently?")) return;
+      if (!currentUser) return;
+      try {
+        const docRef = doc(db, "users", currentUser.uid, "sessions", dateId);
+        const snap   = await getDoc(docRef);
+        if (snap.exists()) {
+          const ss = snap.data().screenshots || [];
+          for (const s of ss) {
+            try { await deleteObject(ref(storage, s.path)); } catch {}
+          }
+        }
+        await deleteDoc(docRef);
+        showToast("Session deleted.", "success");
+        closeModal();
+        await loadEntries();
+        updateDashboard();
+      } catch (e) {
+        showToast("Error: " + e.message, "error");
+      }
+    };
+
+    window.editEntry = function (dateId) {
+      const entry = allEntries.find(e => e.id === dateId);
+      if (!entry) return;
+      editingDocId = dateId;
+      document.getElementById("log-date").value         = entry.date || dateId;
+      document.getElementById("log-duration").value     = entry.duration || 1;
+      document.getElementById("log-topics").value       = (entry.topics || []).join(", ");
+      document.getElementById("log-learned").value      = entry.learned || "";
+      document.getElementById("log-strategy").value     = entry.strategy || "";
+      document.getElementById("log-notes").value        = entry.notes || "";
+      document.getElementById("log-trades").value       = entry.trades || 0;
+      document.getElementById("log-wins").value         = entry.wins || 0;
+      document.getElementById("log-losses").value       = entry.losses || 0;
+      selectedMood = entry.mood || "🙂";
+      document.querySelectorAll(".mood-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.mood === selectedMood);
+      });
+      pendingScreenshots = [];
+      document.getElementById("screenshot-previews").innerHTML = "";
+      closeModal();
+      switchTab("daily-log", document.querySelector("[data-tab=daily-log]"));
+      showToast("Editing session for " + dateId, "info");
+    };
+
+    window.selectMood = function (btn) {
+      document.querySelectorAll(".mood-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedMood = btn.dataset.mood;
+    };
+
+    // ── Helpers exposed to inline handlers ──
+    window.switchTab     = switchTab;
+    window.toggleSidebar = toggleSidebar;
+    window.clearForm     = clearForm;
+    window.filterEntries = filterEntries;
+    window.closeModal    = () => document.getElementById("entry-modal").classList.add("hidden");
+    window.openEntry     = openEntry;
+    window.togglePw      = () => {
+      const i = document.getElementById("password");
+      i.type  = i.type === "password" ? "text" : "password";
+    };
+    window.switchToRegister = () => {
+      document.getElementById("register-section").classList.remove("hidden");
+      document.getElementById("login-btn").closest(".btn-primary")?.parentElement;
+    };
+    window.switchToLogin = () => {
+      document.getElementById("register-section").classList.add("hidden");
+    };
+
+    // ════════════════════════════════════════════════════
+    //  Core functions
+    // ════════════════════════════════════════════════════
+
+    async function showApp(user) {
+      document.getElementById("login-page").classList.add("hidden");
+      document.getElementById("login-page").classList.remove("active");
+      document.getElementById("app-page").classList.remove("hidden");
+      document.getElementById("app-page").classList.add("active");
+
+      const name = user.displayName || user.email.split("@")[0];
+      document.getElementById("sidebar-user").innerHTML =
+        `<div class="user-avatar">${name[0].toUpperCase()}</div><div><div class="user-name">${name}</div><div class="user-email">${user.email}</div></div>`;
+
+      const today = new Date().toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
+      document.getElementById("today-display").textContent = today;
+      document.getElementById("log-date").value = new Date().toISOString().split("T")[0];
+      document.getElementById("log-date-display").textContent = "Logging for: " + today;
+
+      await loadEntries();
+      updateDashboard();
+      buildDayGrid();
+    }
+
+    function showLogin() {
+      document.getElementById("app-page").classList.add("hidden");
+      document.getElementById("login-page").classList.remove("hidden");
+      document.getElementById("login-page").classList.add("active");
+    }
+
+    async function loadEntries() {
+      if (!currentUser) return;
+      const q    = query(collection(db, "users", currentUser.uid, "sessions"), orderBy("date", "desc"));
+      const snap = await getDocs(q);
+      allEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAllEntries(allEntries);
+    }
+
+    function updateDashboard() {
+      const challengeDay = getChallengeDay();
+      const pct          = Math.min(100, Math.round((challengeDay / 90) * 100));
+      const logged       = allEntries.length;
+      const totalHours   = allEntries.reduce((s, e) => s + (parseFloat(e.duration) || 1), 0);
+      const totalLessons = allEntries.filter(e => e.learned && e.learned.trim()).length;
+      const streak       = calcStreak();
+
+      document.getElementById("current-day-badge").textContent = `Day ${challengeDay}`;
+      document.getElementById("progress-fraction").textContent  = `${challengeDay} / 90 days`;
+      document.getElementById("progress-pct").textContent       = pct + "%";
+      document.getElementById("progress-fill").style.width      = pct + "%";
+      document.getElementById("stat-days-logged").textContent   = logged;
+      document.getElementById("stat-total-hours").textContent   = totalHours.toFixed(1) + "h";
+      document.getElementById("stat-lessons").textContent       = totalLessons;
+      document.getElementById("stat-streak").textContent        = streak;
+
+      const phase = pct < 34 ? "Beginner Phase (Days 1–30)" : pct < 67 ? "Developing Phase (Days 31–60)" : "Advanced Phase (Days 61–90)";
+      document.getElementById("challenge-status-text").textContent = `${phase} — Keep going!`;
+
+      renderRecentEntries();
+      buildWinrateChart();
+      buildTopicsCloud();
+      buildDayGrid();
+    }
+
+    function getChallengeDay() {
+      // Use the earliest session date as start, or today if none
+      if (allEntries.length === 0) return 1;
+      const sorted = [...allEntries].sort((a, b) => a.date.localeCompare(b.date));
+      const start  = new Date(sorted[sorted.length - 1].date); // oldest
+      const today  = new Date();
+      const diff   = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
+      return Math.min(90, Math.max(1, diff));
+    }
+
+    function calcStreak() {
+      const dates  = allEntries.map(e => e.date).sort().reverse();
+      if (!dates.length) return 0;
+      let streak   = 0;
+      let check    = new Date();
+      for (const d of dates) {
+        const entryDate = new Date(d);
+        const checkStr  = check.toISOString().split("T")[0];
+        if (d === checkStr) {
+          streak++;
+          check.setDate(check.getDate() - 1);
+        } else if (d === new Date(check.getTime() - 86400000).toISOString().split("T")[0]) {
+          streak++;
+          check.setDate(check.getDate() - 2);
+        } else break;
+      }
+      return streak;
+    }
+
+    function renderRecentEntries() {
+      const recent  = allEntries.slice(0, 5);
+      const cont    = document.getElementById("recent-entries");
+      if (!recent.length) {
+        cont.innerHTML = `<div class="empty-state"><div class="empty-icon">📝</div><p>No sessions yet.</p></div>`;
+        return;
+      }
+      cont.innerHTML = recent.map(e => entryCard(e, true)).join("");
+    }
+
+    function renderAllEntries(entries) {
+      const cont = document.getElementById("all-entries-list");
+      if (!entries.length) {
+        cont.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>No sessions found.</p></div>`;
+        return;
+      }
+      cont.innerHTML = entries.map(e => entryCard(e, false)).join("");
+    }
+
+    function entryCard(e, compact) {
+      const wr  = e.trades > 0 ? Math.round((e.wins / e.trades) * 100) : null;
+      const wrBadge = wr !== null ? `<span class="badge ${wr >= 50 ? "badge-green" : "badge-red"}">${wr}% WR</span>` : "";
+      const ssCount = (e.screenshots || []).length;
+      return `
+        <div class="entry-card" onclick="openEntry('${e.id}')">
+          <div class="entry-header">
+            <div>
+              <span class="entry-date">${formatDate(e.date)}</span>
+              <span class="entry-mood">${e.mood || "🙂"}</span>
+            </div>
+            <div class="entry-badges">
+              ${wrBadge}
+              ${ssCount > 0 ? `<span class="badge badge-blue">📸 ${ssCount}</span>` : ""}
+              <span class="badge badge-gray">⏱ ${e.duration || 1}h</span>
+            </div>
+          </div>
+          ${e.topics?.length ? `<div class="entry-topics">${e.topics.slice(0,4).map(t => `<span class="topic-tag">${t}</span>`).join("")}</div>` : ""}
+          ${!compact && e.learned ? `<p class="entry-preview">${e.learned.substring(0, 100)}${e.learned.length > 100 ? "…" : ""}</p>` : ""}
+        </div>`;
+    }
+
+    function openEntry(dateId) {
+      const e = allEntries.find(x => x.id === dateId);
+      if (!e) return;
+      const wr = e.trades > 0 ? Math.round((e.wins / e.trades) * 100) : null;
+      const screenshots = (e.screenshots || []).map((s, i) =>
+        `<div class="modal-ss-wrap">
+          <img src="${s.url}" alt="Chart ${i+1}" class="modal-ss" onclick="window.open('${s.url}','_blank')" />
+          <button class="ss-delete-btn" onclick="removeExistingScreenshot('${dateId}',${i})">✕</button>
+        </div>`).join("");
+
+      document.getElementById("modal-content").innerHTML = `
+        <div class="modal-date">${formatDate(e.date)} ${e.mood || ""}</div>
+        <div class="modal-stats-row">
+          <div class="modal-stat"><span>${e.duration || 1}h</span><label>Practice</label></div>
+          <div class="modal-stat"><span>${e.trades || 0}</span><label>Trades</label></div>
+          <div class="modal-stat"><span>${e.wins || 0}</span><label>Wins</label></div>
+          <div class="modal-stat"><span>${e.losses || 0}</span><label>Losses</label></div>
+          ${wr !== null ? `<div class="modal-stat"><span>${wr}%</span><label>Win Rate</label></div>` : ""}
+        </div>
+        ${e.topics?.length ? `<div class="modal-section"><h4>Topics</h4><div class="entry-topics">${e.topics.map(t => `<span class="topic-tag">${t}</span>`).join("")}</div></div>` : ""}
+        ${e.learned ? `<div class="modal-section"><h4>What I Learned</h4><p>${e.learned.replace(/\n/g,"<br>")}</p></div>` : ""}
+        ${e.strategy ? `<div class="modal-section"><h4>Strategy Notes</h4><p>${e.strategy.replace(/\n/g,"<br>")}</p></div>` : ""}
+        ${e.notes ? `<div class="modal-section"><h4>Additional Notes</h4><p>${e.notes.replace(/\n/g,"<br>")}</p></div>` : ""}
+        ${screenshots ? `<div class="modal-section"><h4>Chart Screenshots</h4><div class="modal-ss-grid">${screenshots}</div></div>` : ""}
+        <div class="modal-actions">
+          <button class="btn-primary" onclick="editEntry('${dateId}')">✏️ Edit</button>
+          <button class="btn-danger" onclick="deleteEntry('${dateId}')">🗑 Delete</button>
+        </div>`;
+      document.getElementById("entry-modal").classList.remove("hidden");
+    }
+
+    function buildDayGrid() {
+      const grid    = document.getElementById("day-grid");
+      if (!grid) return;
+      const loggedDates = new Set(allEntries.map(e => e.date));
+      const today   = new Date().toISOString().split("T")[0];
+      const start   = allEntries.length > 0
+        ? [...allEntries].sort((a,b) => a.date.localeCompare(b.date))[0].date
+        : today;
+      grid.innerHTML = "";
+      for (let i = 0; i < 90; i++) {
+        const d     = new Date(start);
+        d.setDate(d.getDate() + i);
+        const ds    = d.toISOString().split("T")[0];
+        const cell  = document.createElement("div");
+        cell.className = "grid-cell";
+        cell.title  = `Day ${i+1}: ${ds}`;
+        if (ds === today) cell.classList.add("today");
+        else if (loggedDates.has(ds)) cell.classList.add("done");
+        else if (ds > today) cell.classList.add("future");
+        cell.textContent = i + 1;
+        if (loggedDates.has(ds)) cell.onclick = () => openEntry(ds);
+        grid.appendChild(cell);
+      }
+    }
+
+    function buildWinrateChart() {
+      const cont   = document.getElementById("winrate-chart");
+      if (!cont) return;
+      const entries = [...allEntries].sort((a, b) => a.date.localeCompare(b.date)).filter(e => e.trades > 0).slice(-15);
+      if (!entries.length) { cont.innerHTML = `<p class="chart-empty">Log trades to see win rate chart.</p>`; return; }
+      const maxH = 120;
+      const bars  = entries.map(e => {
+        const wr = Math.round((e.wins / e.trades) * 100);
+        const h  = Math.round((wr / 100) * maxH);
+        return `<div class="bar-item">
+          <div class="bar-fill ${wr >= 50 ? "bar-green" : "bar-red"}" style="height:${h}px" title="${wr}% on ${e.date}">
+            <span class="bar-label">${wr}%</span>
+          </div>
+          <div class="bar-date">${e.date.slice(5)}</div>
+        </div>`;
+      }).join("");
+      cont.innerHTML = `<div class="bar-chart">${bars}</div>`;
+    }
+
+    function buildTopicsCloud() {
+      const cont   = document.getElementById("topics-cloud");
+      if (!cont) return;
+      const freq   = {};
+      allEntries.forEach(e => (e.topics || []).forEach(t => { if(t) freq[t] = (freq[t]||0)+1; }));
+      const sorted = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0,20);
+      if (!sorted.length) { cont.innerHTML = `<p class="chart-empty">Log topics to see the cloud.</p>`; return; }
+      const max    = sorted[0][1];
+      cont.innerHTML = sorted.map(([t, c]) => {
+        const sz = 12 + Math.round((c / max) * 16);
+        return `<span class="cloud-tag" style="font-size:${sz}px" title="${c} sessions">${t}</span>`;
+      }).join(" ");
+    }
+
+    function filterEntries() {
+      const q = document.getElementById("search-input").value.toLowerCase();
+      const filtered = allEntries.filter(e =>
+        (e.topics || []).some(t => t.toLowerCase().includes(q)) ||
+        (e.learned || "").toLowerCase().includes(q) ||
+        (e.notes || "").toLowerCase().includes(q) ||
+        (e.strategy || "").toLowerCase().includes(q) ||
+        (e.date || "").includes(q)
+      );
+      renderAllEntries(filtered);
+    }
+
+    function renderScreenshotPreviews() {
+      const cont = document.getElementById("screenshot-previews");
+      cont.innerHTML = pendingScreenshots.map((s, i) =>
+        `<div class="ss-preview">
+          <img src="${s.data}" alt="${s.name}" />
+          <button class="ss-remove" onclick="removeScreenshot(${i})">✕</button>
+        </div>`).join("");
+    }
+
+    function switchTab(tab, el) {
+      document.querySelectorAll(".tab-content").forEach(t => t.classList.add("hidden"));
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const target = document.getElementById("tab-" + tab);
+      if (target) target.classList.remove("hidden");
+      if (el) el.classList.add("active");
+      document.getElementById("topbar-title").textContent =
+        { dashboard: "Dashboard", "daily-log": "Daily Log", "all-days": "All Sessions", progress: "Progress" }[tab] || tab;
+      if (window.innerWidth < 768) document.getElementById("sidebar").classList.remove("open");
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+
+    function clearForm() {
+      ["log-topics","log-learned","log-strategy","log-notes","log-trades","log-wins","log-losses"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("log-date").value = new Date().toISOString().split("T")[0];
+      document.getElementById("log-duration").value = "1";
+      pendingScreenshots = [];
+      document.getElementById("screenshot-previews").innerHTML = "";
+      editingDocId = null;
+    }
+
+    function setLoading(btn, on) {
+      btn.querySelector(".btn-text").classList.toggle("hidden", on);
+      btn.querySelector(".btn-loader").classList.toggle("hidden", !on);
+      btn.disabled = on;
+    }
+
+    function showError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      setTimeout(() => el.classList.add("hidden"), 4000);
+    }
+
+    function showToast(msg, type = "info") {
+      const t = document.createElement("div");
+      t.className = `toast toast-${type}`;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add("show"), 10);
+      setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    function formatDate(ds) {
+      if (!ds) return "";
+      const d = new Date(ds + "T00:00:00");
+      return d.toLocaleDateString("en-IN", { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+    }
+
+    function friendlyError(code) {
+      const firebaseConfig = {
+	  apiKey: "AIzaSyDxs8vSFWqX56XVkyETfV9cNZM4YLH0IdI",
+	  authDomain: "tradelog90.firebaseapp.com",
+	  projectId: "tradelog90",
+	  storageBucket: "tradelog90.firebasestorage.app",
+	  messagingSenderId: "819185731815",
+	  appId: "1:819185731815:web:5c14565ddce458ab9fba42"
+	};
+      return map[code] || "An error occurred. Please try again.";
+    }
+  </script>
+</body>
+</html>
